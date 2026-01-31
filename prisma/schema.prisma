@@ -1,0 +1,175 @@
+// Prisma schema file defining the database models and relations
+// generator configuration for Prisma Client
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+// MongoDB datasource configuration
+datasource db {
+  provider = "mongodb"
+}
+
+
+
+enum Role {
+  ADMIN
+  TEACHER
+  ASSISTANT
+  STUDENT
+  PARENT
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  COMPLETE
+}
+
+model User {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  username      String   @unique
+  email         String   @unique
+  passwordHash  String
+  role          Role     @default(STUDENT)
+  
+  // Relations
+  enrolledCourses Enrollment[]
+  certificates    Certificate[]
+  accessCodes LectureAccess[]
+  
+  // Self-referencing Parent relation fixed with NoAction
+  parentId      String?  @db.ObjectId
+  parent        User?    @relation("ParentToStudent", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children      User[]   @relation("ParentToStudent")
+
+  createdCourses Course[] @relation("CourseCreator")
+  progress       Progress[]
+  quizAttempts   QuizAttempt[]
+  
+  createdAt     DateTime @default(now())
+}
+
+model Course {
+  id             String       @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  description    String?
+  level          String       
+  creatorId      String       @db.ObjectId
+  creator        User         @relation("CourseCreator", fields: [creatorId], references: [id])
+  
+  partitions     Partition[]
+  enrollments    Enrollment[]
+  certificates   Certificate[]
+}
+
+model LectureAccess {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  code      String   @unique // The random unique code
+  studentId String   @db.ObjectId
+  lectureId String   @db.ObjectId
+  usedCount Int      @default(0)
+  createdAt DateTime @default(now())
+
+  student   User     @relation(fields: [studentId], references: [id])
+  lecture   Lecture  @relation(fields: [lectureId], references: [id])
+
+  @@unique([studentId, lectureId]) // One unique code per student per lecture
+}
+
+
+model Partition {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  title     String
+  order     Int       
+  courseId  String    @db.ObjectId
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lectures  Lecture[]
+}
+
+model Lecture {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  title           String
+  content         String?
+  videoUrl        String?
+  maxVideoViews   Int       @default(1)
+  maxQuizAttempts Int       @default(1)
+  
+  partitionId     String    @db.ObjectId
+  partition       Partition @relation(fields: [partitionId], references: [id], onDelete: Cascade)
+  accessCodes LectureAccess[]
+
+  quiz            Quiz?
+  userProgress    Progress[]
+}
+
+model Quiz {
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
+  lectureId   String     @unique @db.ObjectId
+  lecture     Lecture    @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  questions   Question[]
+  attempts    QuizAttempt[]
+}
+
+model Question {
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  text        String
+  type        QuestionType @default(MULTIPLE_CHOICE)
+  quizId      String       @db.ObjectId
+  quiz        Quiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  options     Option[]     
+  correctText String?      
+}
+
+model Option {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  text        String
+  isCorrect   Boolean  @default(false)
+  questionId  String   @db.ObjectId
+  question    Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model Enrollment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  studentId String   @db.ObjectId
+  courseId  String   @db.ObjectId
+  student   User     @relation(fields: [studentId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, courseId])
+}
+
+model Progress {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String   @db.ObjectId
+  lectureId   String   @db.ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  lecture     Lecture  @relation(fields: [lectureId], references: [id])
+  
+  videoViews  Int      @default(0)
+  isCompleted Boolean  @default(false)
+
+  @@unique([userId, lectureId])
+}
+
+model QuizAttempt {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  quizId    String   @db.ObjectId
+  score     Float
+  attemptNo Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+
+  @@index([userId, quizId])
+}
+
+model Certificate {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  studentId   String   @db.ObjectId
+  courseId    String   @db.ObjectId
+  issueDate   DateTime @default(now())
+  student     User     @relation(fields: [studentId], references: [id])
+  course      Course   @relation(fields: [courseId], references: [id])
+}
