@@ -16,41 +16,36 @@ const Navbar = () => {
         {/* Links */}
         <ul className="hidden md:flex items-center space-x-8 text-gray-300 font-medium">
           <li>
-            <a href="#" className="hover:text-indigo-400 transition">
+            <a
+              className="hover:text-indigo-400 transition"
+              onClick={() => navigate("/")}
+            >
               Home
             </a>
           </li>
           <li>
-            <a href="#" className="hover:text-indigo-400 transition">
+            <a
+              className="hover:text-indigo-400 transition"
+              onClick={() => navigate("/grades")}
+            >
               Courses
             </a>
           </li>
           <li>
-            <a href="#" className="hover:text-indigo-400 transition">
-              Features
-            </a>
+            <a className="hover:text-indigo-400 transition">Features</a>
           </li>
           <li>
-            <a href="#" className="hover:text-indigo-400 transition">
-              About
-            </a>
+            <a className="hover:text-indigo-400 transition">About</a>
           </li>
         </ul>
 
         {/* Buttons */}
-        <div className="flex items-center space-x-4">
-          <button
-            className="hidden sm:block text-gray-300 hover:text-white transition"
-            onClick={() => navigate("/login")}
-          >
-            Login
-          </button>
-
+        <div className="flex items-center">
           <button
             className="px-4 py-2 rounded-lg bg-linear-to-r from-indigo-500 to-purple-500 text-white font-semibold hover:opacity-90 transition"
-            onClick={() => navigate("/login?panel=signup")} // نرسل query param لتحديد لوحة Signup
+            onClick={() => navigate("/login")}
           >
-            Sign Up
+            Login / Sign Up
           </button>
         </div>
       </div>

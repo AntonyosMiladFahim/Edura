@@ -6,10 +6,10 @@ const AppContext = createContext();
 // 2️⃣ Create a provider component
 export const AppProvider = ({ children }) => {
   const [grades, setGrades] = useState([
-    { id: "1", name: "Grade 1", description: "Basic foundations" },
-    { id: "2", name: "Grade 2", description: "Building knowledge" },
-    { id: "3", name: "Grade 3", description: "Intermediate level" },
-    { id: "4", name: "Grade 4", description: "Advanced basics" },
+    { id: "1", name: "Primary 1", description: "Basic foundations" },
+    { id: "2", name: "Primary 2", description: "Building knowledge" },
+    { id: "3", name: "Preparatory 3", description: "Intermediate level" },
+    { id: "4", name: "Secondary 1", description: "Advanced basics" },
   ]);
 
   return (

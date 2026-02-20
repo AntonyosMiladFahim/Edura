@@ -1,10 +1,14 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
+import Navbar from "../../components/student/Navbar";
+import Footer from "../../components/student/Footer";
+import { useNavigate } from "react-router-dom";
 
 const GradePage = () => {
   const { id } = useParams();
   const { grades } = useAppContext();
+  const navigate = useNavigate();
 
   const grade = grades.find((g) => g.id === id);
 
@@ -33,20 +37,26 @@ const GradePage = () => {
       {/* Example Subjects Section */}
       <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
         {/* Example cards for subjects (replace with real subjects later) */}
-        {["Lecture1", "Lecture2", "Lecture3", "Lecture4"].map((subject) => (
-          <div
-            key={subject}
-            className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:-translate-y-2 hover:border-indigo-500/50 transition cursor-pointer"
-          >
-            <h3 className="text-xl font-bold text-white">{subject}</h3>
-            <p className="mt-2 text-gray-400 text-sm">
-              Explore the {subject} lessons for {grade.name}.
-            </p>
-            <span className="mt-4 inline-block text-indigo-400 font-medium">
-              View Lessons →
-            </span>
-          </div>
-        ))}
+        {["Lecture1", "Lecture2", "Lecture3", "Lecture4"].map(
+          (subject, index) => {
+            const lectureId = `${grade.id}-${index + 1}`;
+            return (
+              <div
+                key={lectureId}
+                onClick={() => navigate(`/lecture/${lectureId}`)}
+                className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:-translate-y-2 hover:border-indigo-500/50 transition cursor-pointer"
+              >
+                <h3 className="text-xl font-bold text-white">{subject}</h3>
+                <p className="mt-2 text-gray-400 text-sm">
+                  Explore the {subject} lessons for {grade.name}.
+                </p>
+                <span className="mt-4 inline-block text-indigo-400 font-medium">
+                  View Lessons →
+                </span>
+              </div>
+            );
+          },
+        )}
       </div>
     </section>
   );
