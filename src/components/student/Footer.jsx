@@ -8,7 +8,7 @@ const Footer = () => {
         {/* Logo & Description */}
         <div>
           <h2 className="text-3xl font-extrabold">
-            <span className="bg-linear-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent cursor-pointer" onClick={() => window.location.href = "/"}>
               Edura
             </span>
           </h2>

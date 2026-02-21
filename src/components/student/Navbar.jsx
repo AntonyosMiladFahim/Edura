@@ -8,7 +8,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <h1 className="text-2xl font-extrabold text-white">
-          <span className="bg-linear-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">
+          <span className="bg-linear-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent cursor-pointer" onClick={() => navigate("/")}>
             Edura
           </span>
         </h1>

@@ -1,78 +1,13 @@
 import React from "react";
 import Navbar from "../../components/student/Navbar";
 import Footer from "../../components/student/Footer";
+import { useAppContext } from "../../context/AppContext";
 
 function MyCourses() {
-  const myCourses = [
-    {
-      title: "Complete Frontend Development",
-      grade: "Secondary 2",
-      lectures: [
-        {
-          name: "HTML Basics",
-          students: 40,
-          published: "2025-06-01",
-          earnings: "400 EGP",
-        },
-        {
-          name: "CSS Advanced",
-          students: 35,
-          published: "2025-06-05",
-          earnings: "350 EGP",
-        },
-        {
-          name: "JS Fundamentals",
-          students: 45,
-          published: "2025-06-10",
-          earnings: "450 EGP",
-        },
-      ],
-    },
-    {
-      title: "JavaScript Mastery",
-      grade: "Preparatory 2",
-      lectures: [
-        {
-          name: "JS Intro",
-          students: 30,
-          published: "2025-04-01",
-          earnings: "300 EGP",
-        },
-        {
-          name: "DOM Manipulation",
-          students: 25,
-          published: "2025-04-05",
-          earnings: "250 EGP",
-        },
-        {
-          name: "ES6 Features",
-          students: 35,
-          published: "2025-04-10",
-          earnings: "350 EGP",
-        },
-      ],
-    },
-    {
-      title: "HTML & CSS Fundamentals",
-      grade: "Primary 3",
-      lectures: [
-        {
-          name: "HTML Basics",
-          students: 20,
-          published: "2025-02-01",
-          earnings: "200 EGP",
-        },
-        {
-          name: "CSS Basics",
-          students: 25,
-          published: "2025-02-05",
-          earnings: "250 EGP",
-        },
-      ],
-    },
-  ];
+  const { getItems } = useAppContext();
+  const myCourses = getItems("courses") || [];
 
-  // ترتيب Grades بشكل مخصص
+  // Keep the existing gradeOrder for stable ordering if a course has `grade`
   const gradeOrder = {
     "Primary 1": 1,
     "Primary 2": 2,
@@ -88,11 +23,11 @@ function MyCourses() {
     "Secondary 3": 12,
   };
 
-  const sortedCourses = myCourses.sort((a, b) => {
+  const sortedCourses = [...myCourses].sort((a, b) => {
     const aOrder = gradeOrder[a.grade] || 999;
     const bOrder = gradeOrder[b.grade] || 999;
     if (aOrder === bOrder) {
-      return b.lectures.length - a.lectures.length; 
+      return (b.lectures || []).length - (a.lectures || []).length;
     }
     return aOrder - bOrder;
   });
@@ -137,20 +72,30 @@ function MyCourses() {
 
               <tbody>
                 {sortedCourses.map((course) =>
-                  course.lectures.map((lec, idx) => (
+                  (course.lectures || []).map((lec, idx) => (
                     <tr
-                      key={`${course.title}-${idx}`}
+                      key={`${course.id || course.title}-${idx}`}
                       className="border-t border-white/10 hover:bg-white/5 transition"
                     >
                       <td className="px-6 py-4 font-medium">
-                        {idx === 0 ? course.grade : ""}
+                        {idx === 0 ? course.grade || course.category || "" : ""}
                       </td>
                       <td className="px-6 py-4 font-medium">{course.title}</td>
-                      <td className="px-6 py-4 text-gray-300">{lec.name}</td>
-                      <td className="px-6 py-4 text-center">{lec.students}</td>
-                      <td className="px-6 py-4 text-center">{lec.published}</td>
+                      <td className="px-6 py-4 text-gray-300">
+                        {lec.name || lec.title}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {lec.students || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {lec.publishedDate || course.publishedDate || "-"}
+                      </td>
                       <td className="px-6 py-4 text-center font-medium">
-                        {lec.earnings}
+                        {lec.earnings
+                          ? `${lec.earnings} EGP`
+                          : course.price
+                            ? `${course.price} EGP`
+                            : "-"}
                       </td>
                     </tr>
                   )),

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useMemo } from "react";
+import assets from "../data/assets";
 
 // 1️⃣ Create the context
 const AppContext = createContext();
@@ -12,8 +13,23 @@ export const AppProvider = ({ children }) => {
     { id: "4", name: "Secondary 1", description: "Advanced basics" },
   ]);
 
+  // Reusable data access helpers that consume `assets`.
+  const getItems = (type) => {
+    if (!type) return null;
+    return assets[type] || [];
+  };
+
+  const getById = (type, id) => {
+    if (!type || !id) return null;
+    const list = assets[type] || [];
+    return list.find((item) => item.id === id || item.id === String(id));
+  };
+
+  // Memoize exported helpers to avoid unnecessary re-renders in consumers
+  const helpers = useMemo(() => ({ getItems, getById, assets }), []);
+
   return (
-    <AppContext.Provider value={{ grades, setGrades }}>
+    <AppContext.Provider value={{ grades, setGrades, ...helpers }}>
       {children}
     </AppContext.Provider>
   );

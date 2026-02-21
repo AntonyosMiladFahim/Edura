@@ -1,16 +1,14 @@
 import React from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
 import Navbar from "../../components/student/Navbar";
 import Footer from "../../components/student/Footer";
-import { useNavigate } from "react-router-dom";
 
 const GradePage = () => {
   const { id } = useParams();
-  const { grades } = useAppContext();
-  const navigate = useNavigate();
+  const { grades, getItems, getById } = useAppContext();
 
-  const grade = grades.find((g) => g.id === id);
+  const grade = getById("grades", id) || grades.find((g) => g.id === id);
 
   if (!grade) {
     return (
@@ -20,45 +18,64 @@ const GradePage = () => {
     );
   }
 
+  const courses = (getItems("courses") || []).filter(
+    (c) => String(c.gradeId) === String(grade.id),
+  );
+
   return (
-    <section className="min-h-screen bg-black py-20 px-6">
-      {/* Title */}
-      <div className="max-w-4xl mx-auto text-center mb-12">
-        <h1 className="text-5xl font-extrabold text-white mb-4">
-          {grade.name}
-          <span className="bg-linear-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">
-            {" "}
-            Overview
-          </span>
-        </h1>
-        <p className="text-gray-400 text-lg">{grade.description}</p>
+    <>
+      <div className="fixed top-0 left-0 w-full z-50 bg-black/70 backdrop-blur-md shadow-md">
+        <Navbar />
       </div>
 
-      {/* Example Subjects Section */}
-      <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-        {/* Example cards for subjects (replace with real subjects later) */}
-        {["Lecture1", "Lecture2", "Lecture3", "Lecture4"].map(
-          (subject, index) => {
-            const lectureId = `${grade.id}-${index + 1}`;
-            return (
-              <div
-                key={lectureId}
-                onClick={() => navigate(`/lecture/${lectureId}`)}
-                className="bg-white/5 border border-white/10 rounded-2xl p-6 text-center hover:-translate-y-2 hover:border-indigo-500/50 transition cursor-pointer"
-              >
-                <h3 className="text-xl font-bold text-white">{subject}</h3>
-                <p className="mt-2 text-gray-400 text-sm">
-                  Explore the {subject} lessons for {grade.name}.
-                </p>
-                <span className="mt-4 inline-block text-indigo-400 font-medium">
-                  View Lessons →
-                </span>
+      <section className="pt-24 min-h-screen bg-gray-900 text-white">
+        <div className="max-w-6xl mx-auto px-6 py-12">
+          <div className="mb-8 text-center">
+            <h1 className="text-4xl font-extrabold">{grade.name} Courses</h1>
+            <p className="text-gray-400 mt-2">{grade.description}</p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {courses.length === 0 && (
+              <div className="col-span-full text-center text-gray-400">
+                No courses found for this grade.
               </div>
-            );
-          },
-        )}
-      </div>
-    </section>
+            )}
+
+            {courses.map((course) => (
+              <Link
+                to={`/course/${course.id}`}
+                key={course.id}
+                className="group block rounded-2xl p-6 bg-white/5 hover:bg-white/7 transition"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-1">
+                    <h2 className="text-lg font-bold group-hover:text-white">
+                      {course.title}
+                    </h2>
+                    <p className="text-gray-300 text-sm mt-2 line-clamp-3">
+                      {course.description}
+                    </p>
+
+                    <div className="mt-4 text-sm text-gray-400">
+                      <span>Lectures: {course.lectures?.length || 0}</span>
+                      <span className="mx-2">•</span>
+                      <span>Price: {course.price}</span>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 self-center">
+                    <div className="text-indigo-400 font-medium">Open →</div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Footer />
+    </>
   );
 };
 

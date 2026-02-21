@@ -1,146 +1,140 @@
 import React from "react";
 import Navbar from "../components/student/Navbar";
 import Footer from "../components/student/Footer";
+import { useAppContext } from "../context/AppContext";
+import { useParams } from "react-router-dom";
 
 function ParentPage() {
-  const parent = {
-    name: "Mohamed Ahmed",
-    email: "mohamed@example.com",
-    phone: "01087654321",
-    children: [
-      {
-        id: 1,
-        name: "Ali Ahmed",
-        grade: "Primary 3",
-        courses: [
-          {
-            title: "HTML & CSS Fundamentals",
-            lectures: [
-              {
-                name: "HTML Basics",
-                quizzes: [
-                  { name: "Quiz 1", score: 85 },
-                  { name: "Quiz 2", score: 90 },
-                ],
-              },
-              {
-                name: "CSS Basics",
-                quizzes: [
-                  { name: "Quiz 1", score: 75 },
-                  { name: "Quiz 2", score: 80 },
-                ],
-              },
-            ],
-          },
-          {
-            title: "JavaScript Basics",
-            lectures: [
-              {
-                name: "JS Intro",
-                quizzes: [{ name: "Quiz 1", score: 88 }],
-              },
-              {
-                name: "DOM Manipulation",
-                quizzes: [{ name: "Quiz 1", score: 92 }],
-              },
-            ],
-          },
-        ],
-      },
-      {
-        id: 2,
-        name: "Sara Ahmed",
-        grade: "Preparatory 2",
-        courses: [
-          {
-            title: "JavaScript Mastery",
-            lectures: [
-              {
-                name: "JS Intro",
-                quizzes: [
-                  { name: "Quiz 1", score: 80 },
-                  { name: "Quiz 2", score: 85 },
-                ],
-              },
-              {
-                name: "DOM Manipulation",
-                quizzes: [
-                  { name: "Quiz 1", score: 78 },
-                  { name: "Quiz 2", score: 82 },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-    ],
-  };
+  const { getItems, getById } = useAppContext();
+  const { id } = useParams();
+
+  const parents = getItems("parents") || [];
+  const parent = id ? getById("parents", id) : parents[0] || null;
+
+  if (!parent) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white">
+        <Navbar />
+        <div className="pt-24 max-w-4xl mx-auto p-6">
+          No parent data available.
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const children = (parent.children || [])
+    .map((c) => getById("students", c.childId))
+    .filter(Boolean);
 
   return (
     <>
-      <div className="fixed top-0 left-0 w-full z-50 bg-black/70 backdrop-blur-md shadow-md">
+      <div className="fixed top-0 left-0 w-full z-50 bg-black/70 backdrop-blur-md">
         <Navbar />
       </div>
 
-      <div className="pt-24 bg-gray-900 min-h-screen">
-        <div className="max-w-7xl mx-auto px-6 py-14 text-white">
-          <h1 className="text-3xl font-extrabold mb-6">
-            Welcome, {parent.name}
-          </h1>
-          <p className="text-gray-300 mb-8">
-            Email: {parent.email} | Phone: {parent.phone}
-          </p>
+      <div className="pt-24 min-h-screen bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto px-6 py-14 space-y-10">
+          {/* Parent Info */}
+          <div className="bg-white/10 rounded-2xl p-6">
+            <h1 className="text-3xl font-extrabold">
+              Welcome, {parent.fullName}
+            </h1>
+            <p className="text-gray-300 mt-2">
+              📧 {parent.email} | 📞 {parent.phone}
+            </p>
+          </div>
 
-          {parent.children.map((child) => (
+          {/* Children */}
+          {children.map((child) => (
             <div
               key={child.id}
-              className="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-8"
+              className="bg-white/5 rounded-2xl p-6 space-y-6"
             >
-              <h2 className="text-2xl font-semibold mb-4">{child.name}</h2>
-              <p className="text-gray-300 mb-4">Grade: {child.grade}</p>
-
-              {child.courses.map((course, idxCourse) => (
-                <div
-                  key={idxCourse}
-                  className="bg-white/5 rounded-xl p-4 mb-6 border border-white/10"
-                >
-                  <h3 className="text-xl font-semibold mb-3">{course.title}</h3>
-
-                  {course.lectures.map((lecture, idxLecture) => (
-                    <div
-                      key={idxLecture}
-                      className="mb-4 bg-white/10 rounded-lg p-3"
-                    >
-                      <h4 className="font-medium mb-2">{lecture.name}</h4>
-                      <table className="min-w-full text-sm border border-white/10 rounded-lg">
-                        <thead className="bg-white/5 text-gray-300">
-                          <tr>
-                            <th className="px-3 py-1 text-left font-semibold">
-                              Quiz
-                            </th>
-                            <th className="px-3 py-1 text-center font-semibold">
-                              Score
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {lecture.quizzes.map((quiz, idxQuiz) => (
-                            <tr
-                              key={idxQuiz}
-                              className="border-t border-white/10"
-                            >
-                              <td className="px-3 py-1">{quiz.name}</td>
-                              <td className="px-3 py-1 text-center">
-                                {quiz.score}%
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ))}
+              {/* Child Header */}
+              <div className="flex items-center gap-4">
+                <img
+                  src={child.avatar}
+                  alt={child.fullName}
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+                <div>
+                  <h2 className="text-2xl font-semibold">{child.fullName}</h2>
+                  <p className="text-gray-400 text-sm">
+                    Age: {child.age} | Gender: {child.gender}
+                  </p>
                 </div>
-              ))}
+              </div>
+
+              {/* Academic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white/10 p-4 rounded-xl">
+                  🎯 Attendance
+                  <p className="text-2xl font-bold">
+                    {child.attendancePercent}%
+                  </p>
+                </div>
+
+                <div className="bg-white/10 p-4 rounded-xl">
+                  📚 Enrolled Courses
+                  <p className="text-2xl font-bold">
+                    {child.enrolledCourses.length}
+                  </p>
+                </div>
+
+                <div className="bg-white/10 p-4 rounded-xl">
+                  🆘 Emergency Contact
+                  <p className="text-sm text-gray-300 mt-1">
+                    {child.emergencyContact.name} (
+                    {child.emergencyContact.relation})
+                  </p>
+                </div>
+              </div>
+
+              {/* Courses */}
+              <div className="space-y-4">
+                {child.enrolledCourses.map((course) => (
+                  <div
+                    key={course.courseId}
+                    className="bg-white/10 rounded-xl p-4"
+                  >
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="text-lg font-semibold">{course.title}</h3>
+                      <span className="text-sm text-indigo-400">
+                        Progress: {course.progressPercent}%
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-400">Final Grade:</span>
+                        <p className="font-semibold">
+                          {child.grades?.[course.courseId] || "—"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-gray-400">Quiz Average:</span>
+                        <p className="font-semibold">
+                          {child.quizResults?.[course.courseId] || "—"}%
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-gray-400">Enrolled:</span>
+                        <p>{course.enrolledDate}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Notes */}
+              {child.notes && (
+                <div className="bg-white/10 p-4 rounded-xl text-sm text-gray-300">
+                  📝 {child.notes}
+                </div>
+              )}
             </div>
           ))}
         </div>

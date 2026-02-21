@@ -2,36 +2,23 @@ import React from "react";
 import Navbar from "../../components/student/Navbar";
 import Footer from "../../components/student/Footer";
 import { useParams } from "react-router-dom";
+import { useAppContext } from "../../context/AppContext";
 
 function SingleStudent() {
   const { id } = useParams();
 
-  // في الواقع، البيانات دي هتيجي من API
-  const student = {
-    id: 1,
-    name: "Ali Ahmed",
-    email: "ali@example.com",
-    phone: "01012345678",
-    age: 12,
-    grade: "Primary 3",
-    parentName: "Mohamed Ahmed",
-    parentPhone: "01087654321",
-    parentEmail: "mohamed@example.com",
-    courses: [
-      {
-        title: "HTML & CSS Fundamentals",
-        lectures: 6,
-        progress: 80,
-        enrolledDate: "2025-02-01",
-      },
-      {
-        title: "JavaScript Basics",
-        lectures: 4,
-        progress: 50,
-        enrolledDate: "2025-03-01",
-      },
-    ],
-  };
+  const { getById } = useAppContext();
+  const student = getById("students", id);
+
+  if (!student) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white">
+        <Navbar />
+        <div className="pt-24 max-w-4xl mx-auto p-6">Student not found.</div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <>

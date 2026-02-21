@@ -1,34 +1,11 @@
 import React from "react";
 import Navbar from "../../components/student/Navbar";
 import Footer from "../../components/student/Footer";
+import { useAppContext } from "../../context/AppContext";
 
 function MyEnrolled() {
-  const myCourses = [
-    {
-      title: "Complete Frontend Development",
-      grade: "Secondary",
-      lectures: 42,
-      duration: "12h",
-      progress: 65,
-      status: "In Progress",
-    },
-    {
-      title: "JavaScript Mastery",
-      grade: "Preparatory",
-      lectures: 30,
-      duration: "8h",
-      progress: 100,
-      status: "Completed",
-    },
-    {
-      title: "HTML & CSS Fundamentals",
-      grade: "Primary",
-      lectures: 18,
-      duration: "4h",
-      progress: 20,
-      status: "In Progress",
-    },
-  ];
+  const { getItems } = useAppContext();
+  const myCourses = getItems("courses") || [];
 
   return (
     <>
@@ -45,7 +22,9 @@ function MyEnrolled() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-14">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-extrabold mb-2">My Enrollled Courses</h1>
+            <h1 className="text-3xl font-extrabold mb-2">
+              My Enrollled Courses
+            </h1>
             <p className="text-gray-400">
               Track your enrolled courses, progress, and lectures.
             </p>
@@ -77,46 +56,63 @@ function MyEnrolled() {
               </thead>
 
               <tbody>
-                {myCourses.map((course, index) => (
-                  <tr
-                    key={index}
-                    className="border-t border-white/10 hover:bg-white/5 transition"
-                  >
-                    <td className="px-6 py-4 font-medium">{course.title}</td>
-                    <td className="px-6 py-4 text-gray-300">{course.grade}</td>
-                    <td className="px-6 py-4 text-center">{course.lectures}</td>
-                    <td className="px-6 py-4 text-center">{course.duration}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-indigo-500 transition-all"
-                            style={{ width: `${course.progress}%` }}
-                          />
+                {myCourses.map((course, index) => {
+                  const lecturesCount = course.lectures
+                    ? course.lectures.length
+                    : 0;
+                  const durationMins = course.lectures
+                    ? course.lectures.reduce(
+                        (s, l) => s + (l.durationMins || 0),
+                        0,
+                      )
+                    : 0;
+                  const duration = `${Math.floor(durationMins / 60)}h ${durationMins % 60}m`;
+                  const progress = course.progress ?? 0;
+                  const status = progress >= 100 ? "Completed" : "In Progress";
+
+                  return (
+                    <tr
+                      key={course.id || index}
+                      className="border-t border-white/10 hover:bg-white/5 transition"
+                    >
+                      <td className="px-6 py-4 font-medium">{course.title}</td>
+                      <td className="px-6 py-4 text-gray-300">
+                        {course.category || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-center">{lecturesCount}</td>
+                      <td className="px-6 py-4 text-center">{duration}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-indigo-500 transition-all"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-gray-400">
+                            {progress}%
+                          </span>
                         </div>
-                        <span className="text-xs text-gray-400">
-                          {course.progress}%
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            status === "Completed"
+                              ? "bg-green-500/20 text-green-400"
+                              : "bg-indigo-500/20 text-indigo-400"
+                          }`}
+                        >
+                          {status}
                         </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          course.status === "Completed"
-                            ? "bg-green-500/20 text-green-400"
-                            : "bg-indigo-500/20 text-indigo-400"
-                        }`}
-                      >
-                        {course.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <button className="px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 transition font-medium text-xs">
-                        Continue
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button className="px-4 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 transition font-medium text-xs">
+                          Continue
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

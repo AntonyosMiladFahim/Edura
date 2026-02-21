@@ -2,93 +2,98 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/student/Navbar";
 import Footer from "../../components/student/Footer";
+import { useAppContext } from "../../context/AppContext";
 
 function SingleLecture() {
-  const {  subject } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
+  const { getItems } = useAppContext();
 
+  const [lecture, setLecture] = useState(null);
+  const [course, setCourse] = useState(null);
   const [openChapter, setOpenChapter] = useState(null);
-  const [title, setTitle] = useState(subject || "Lecture");
 
   useEffect(() => {
-    if (subject) setTitle(subject);
-  }, [subject]);
-
-  const courseStructure = [
-    {
-      title: "Introduction to Web",
-      duration: "5 Lectures • 1h 20m",
-      lectures: [
-        { name: "What is Web Development?", time: "12m", preview: true },
-        { name: "HTML Basics", time: "18m" },
-        { name: "CSS Overview", time: "20m" },
-      ],
-    },
-    {
-      title: "Advanced Topics",
-      duration: "8 Lectures • 3h",
-      lectures: [
-        { name: "JavaScript Deep Dive", time: "40m" },
-        { name: "React Fundamentals", time: "50m" },
-        { name: "Performance Optimization", time: "35m" },
-      ],
-    },
-  ];
+    const courses = getItems("courses") || [];
+    for (const c of courses) {
+      const found = (c.lectures || []).find((l) => l.id === id);
+      if (found) {
+        setLecture(found);
+        setCourse(c);
+        break;
+      }
+    }
+  }, [id, getItems]);
 
   const toggleChapter = (index) => {
     setOpenChapter(openChapter === index ? null : index);
   };
 
+  if (!lecture) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <h2 className="text-3xl font-bold">Lecture not found</h2>
+      </div>
+    );
+  }
+
   return (
     <>
-      <div className="relative min-h-screen bg-linear-to-r from-gray-900 via-black to-gray-900 text-white">
-        {/* Background glow */}
+      {/* Fixed Navbar */}
+      <div className="fixed top-0 left-0 w-full z-50 bg-black/70 backdrop-blur-md">
+        <Navbar />
+      </div>
+
+      <div className="relative min-h-screen pt-24 bg-linear-to-r from-gray-900 via-black to-gray-900 text-white">
+        {/* Background Glow */}
         <div className="absolute inset-0 bg-linear-to-br from-indigo-500/10 to-purple-500/10 blur-3xl" />
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 lg:grid-cols-3 gap-10">
           {/* LEFT */}
           <div className="lg:col-span-2 space-y-10">
+            {/* Back */}
+            <button
+              onClick={() => navigate(-1)}
+              className="text-sm text-gray-400 hover:text-white transition"
+            >
+              ← Back
+            </button>
+
             {/* Header */}
             <div>
-              <button
-                onClick={() => navigate(-1)}
-                className="text-sm text-gray-400 hover:text-white mb-3"
-              >
-                ← Back
-              </button>
-
-              <h1 className="text-4xl font-extrabold mb-4 leading-tight">
-                {title}
-              </h1>
+              <h1 className="text-4xl font-extrabold mb-4">{lecture.name}</h1>
               <p className="text-gray-300 max-w-2xl">
-                This lesson page shows details for the selected lecture.
+                {lecture.summary || "Lecture details and content overview."}
               </p>
 
               <p className="text-sm text-gray-400 mt-4">
-                Course by{" "}
-                <span className="text-indigo-400 font-medium">Instructor</span>
+                From course{" "}
+                <span className="text-indigo-400 font-medium">
+                  {course?.title}
+                </span>
               </p>
             </div>
 
-            {/* Course Structure */}
+            {/* Lecture Content (Accordion like Course UI) */}
             <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 shadow-xl">
-              <h2 className="text-xl font-semibold mb-6">Course Content</h2>
+              <h2 className="text-xl font-semibold mb-6">Lecture Sections</h2>
 
               <div className="space-y-4">
-                {courseStructure.map((chapter, index) => (
+                {(lecture.sections || []).map((section, index) => (
                   <div
-                    key={index}
+                    key={section.id}
                     className="border border-white/10 rounded-xl overflow-hidden"
                   >
-                    {/* Chapter Header */}
+                    {/* Section Header */}
                     <button
                       onClick={() => toggleChapter(index)}
                       className="w-full flex justify-between items-center px-5 py-4 text-left hover:bg-white/5 transition"
                     >
                       <div>
-                        <p className="font-medium">{chapter.title}</p>
+                        <p className="font-medium">{section.title}</p>
                         <p className="text-sm text-gray-400">
-                          {chapter.duration}
+                          {section.durationMins || section.duration || "--"}{" "}
+                          mins
                         </p>
                       </div>
 
@@ -97,43 +102,47 @@ function SingleLecture() {
                           openChapter === index ? "rotate-180" : ""
                         }`}
                       >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
+                        ▼
                       </span>
                     </button>
 
-                    {/* Lectures */}
+                    {/* Section Body */}
                     <div
                       className={`transition-all duration-500 ease-in-out ${
                         openChapter === index
-                          ? "max-h-96 opacity-100"
+                          ? "max-h-80 opacity-100"
                           : "max-h-0 opacity-0"
                       } overflow-hidden`}
                     >
-                      <ul className="border-t border-white/10 px-5 py-4 space-y-3 text-sm text-gray-300">
-                        {chapter.lectures.map((lecture, i) => (
-                          <li
-                            key={i}
-                            className="flex justify-between items-center hover:text-white transition"
-                          >
-                            <span>{lecture.name}</span>
-                            <span className="text-indigo-400">
-                              {lecture.preview ? "Preview • " : ""}
-                              {lecture.time}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
+                      <div className="border-t border-white/10 px-5 py-4 text-sm text-gray-300">
+                        {section.videos && section.videos.length ? (
+                          <ul className="space-y-3">
+                            {section.videos.map((video) => (
+                              <li
+                                key={video.id}
+                                className="flex items-center justify-between"
+                              >
+                                <div>
+                                  <p className="font-medium text-gray-100">
+                                    {video.title}
+                                  </p>
+                                  <p className="text-xs text-gray-400">
+                                    {video.durationMins || "--"} mins
+                                  </p>
+                                </div>
+                                {/* <button className="text-indigo-400 hover:underline">
+                                  Play
+                                </button> */}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div className="flex justify-between">
+                            <span>{section.title}</span>
+                            <span className="text-indigo-400">Open</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -142,11 +151,13 @@ function SingleLecture() {
 
             {/* Description */}
             <div>
-              <h3 className="text-xl font-semibold mb-3">Course Description</h3>
+              <h3 className="text-xl font-semibold mb-3">
+                Lecture Description
+              </h3>
               <p className="text-gray-300 leading-relaxed">
-                This course is designed to take you from beginner to advanced
-                frontend developer. You will build real projects, understand
-                core concepts deeply, and gain practical experience.
+                This lecture is part of a structured course designed to guide
+                you step by step through the learning journey with clear
+                explanations and practical sections.
               </p>
             </div>
           </div>
@@ -155,40 +166,38 @@ function SingleLecture() {
           <div className="space-y-6">
             <div className="bg-white/5 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl">
               <div className="h-44 bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-lg font-semibold">
-                Course Preview
+                Lecture Overview
               </div>
 
               <div className="p-6 space-y-6">
-                {/* Price */}
+                {/* Meta */}
                 <div>
-                  <p className="text-3xl font-bold">49.99 EGP</p>
-                  <div className="flex items-center gap-3 text-sm text-gray-400">
-                    <span className="line-through">99.99 EGP</span>
-                    <span className="text-green-400 font-semibold">
-                      50% off
-                    </span>
-                  </div>
+                  <p className="text-3xl font-bold">
+                    {lecture.durationMins || "--"} mins
+                  </p>
+                  <p className="text-sm text-gray-400 mt-1">
+                    {lecture.students || 0} students
+                  </p>
                 </div>
 
-                {/* Meta */}
                 <div className="flex justify-between text-sm text-gray-300">
-                  <span>⏱ 12h</span>
+                  <span>📘 {lecture.sections?.length || 0} Sections</span>
+                  <span>🎓 Part of course</span>
                 </div>
 
                 {/* CTA */}
                 <button className="w-full py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 active:scale-[0.98] transition font-semibold shadow-lg">
-                  Enroll Now
+                  Start Lecture
                 </button>
 
-                {/* Benefits */}
+                {/* Info */}
                 <div>
-                  <p className="font-semibold mb-3">This course includes:</p>
+                  <p className="font-semibold mb-3">This lecture includes:</p>
                   <ul className="text-sm text-gray-300 space-y-2 list-disc list-inside">
+                    <li>Structured sections</li>
+                    <li>Clear explanations</li>
                     <li>Lifetime access</li>
-                    <li>Hands-on projects</li>
-                    <li>Downloadable resources</li>
-                    <li>Quizzes & assignments</li>
-                    <li>Certificate of completion</li>
+                    <li>Progress tracking</li>
                   </ul>
                 </div>
               </div>
