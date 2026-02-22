@@ -9,6 +9,25 @@ export const getAllCourses = async (req, res) => {
         title: true,
         description: true,
         level: true,
+        price: true,
+        category: true,
+        tags: true,
+        publishedDate: true,
+        creator: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            avatar: true,
+            rating: true
+          }
+        },
+        grade: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
         _count: { select: { enrollments: true } }
       }
     });
@@ -25,16 +44,68 @@ export const getCourseDetails = async (req, res) => {
     const course = await prisma.course.findUnique({
       where: { id },
       include: {
+        creator: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            avatar: true,
+            bio: true,
+            rating: true,
+            title: true
+          }
+        },
+        grade: {
+          select: {
+            id: true,
+            name: true,
+            description: true
+          }
+        },
         partitions: {
-          orderBy: { order: 'asc' },
-          include: {
-            lectures: {
-              select: { id: true, title: true, maxVideoViews: true } 
-            }
+          title, description, level, price, category, tags, gradeId, publishedDate } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: { id: req.userId },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  const userRole = user.role;
+  
+  if (userRole !== "TEACHER" && userRole !== "ADMIN") {
+    return res.status(403).json({ message: "Insufficient permissions to add course" });
+  }
+
+  try {
+    const newCourse = await prisma.course.create({
+      data: {
+        title,
+        description,
+        level,
+        price,
+        category,
+        tags: tags || [],
+        gradeId,
+        publishedDate: publishedDate ? new Date(publishedDate) : new Date(),
+        creatorId: req.userId 
+      },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            username: true,
+            fullName: true,
+            avatar: true
+          }
+        },
+        grade: {
+          select: {
+            id: true,
+            name: true
           }
         }
-      }
-    });
     if (!course) return res.status(404).json({ message: "Course not found" });
     res.status(200).json(course);
   } catch (err) {

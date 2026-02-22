@@ -28,6 +28,46 @@ export const getUser = async (req, res) => {
     // find user by ID
     const user = await prisma.user.findUnique({
       where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        firstName: true,
+        lastName: true,
+        fullName: true,
+        avatar: true,
+        bio: true,
+        title: true,
+        dob: true,
+        age: true,
+        gender: true,
+        phone: true,
+        address: true,
+        department: true,
+        office: true,
+        qualifications: true,
+        rating: true,
+        hourlyRate: true,
+        availability: true,
+        officeHoursLink: true,
+        attendancePercent: true,
+        emergencyContact: true,
+        interests: true,
+        social: true,
+        assignedToInstructorId: true,
+        responsibilities: true,
+        schedule: true,
+        notes: true,
+        parentId: true,
+        createdAt: true,
+        _count: {
+          select: {
+            enrolledCourses: true,
+            createdCourses: true
+          }
+        }
+      }
     });
     // if user not found, respond with error
     if (!user) {
@@ -46,29 +86,32 @@ export const updateUser = async (req, res) => {
   // extract user ID from request parameters and authenticated user ID from token
   const userId = req.params.id;
   const tokenUserId = req.userId;
-  const {password,avatar, ...body} = req.body;
+  const { password, avatar, passwordHash, ...body } = req.body;
 
   // ensure the authenticated user is updating their own profile
-  if ( userId !== tokenUserId) {
+  if (userId !== tokenUserId) {
     return res.status(400).json({ error: 'You are not allowed to update this user' });
   }
 
   // hash the new password if provided  
   let updatedPassword = null;
   try {
-    if(password){
+    if (password) {
       // hash the new password
-      updatedPassword = await bcrypt.hash(password,10);
-      body.password=updatedPassword;
+      updatedPassword = await bcrypt.hash(password, 10);
     }
 
     // update the user in the database 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: {...body,...(password && { password: updatedPassword }), ...(avatar && { avatar } )},
+      data: {
+        ...body,
+        ...(password && { passwordHash: updatedPassword }),
+        ...(avatar && { avatar })
+      },
     });
     // respond with the updated user details excluding the password
-    const { password:userPassword, ...userWithoutPassword } = updatedUser;
+    const { passwordHash: userPassword, ...userWithoutPassword } = updatedUser;
     // respond with updated user data
     res.status(200).json(userWithoutPassword);
   } catch (error) {

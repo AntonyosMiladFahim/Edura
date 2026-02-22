@@ -32,6 +32,43 @@ model User {
   passwordHash  String
   role          Role     @default(STUDENT)
   
+  // Profile Information
+  firstName     String?
+  lastName      String?
+  fullName      String?
+  avatar        String?
+  bio           String?
+  title         String?  // For instructors (e.g., "Associate Professor")
+  
+  // Student/Personal Details
+  dob           DateTime?
+  age           Int?
+  gender        String?
+  phone         String?
+  address       Json?    // {line1, city, state, zip, country}
+  
+  // Academic/Professional Details
+  department    String?  // For instructors
+  office        Json?    // {building, room}
+  qualifications String[] // For instructors
+  rating        Float?   // For instructors
+  hourlyRate    Float?   // For instructors
+  availability  Json?    // For instructors
+  officeHoursLink String?
+  
+  // Student specific
+  attendancePercent Float?
+  emergencyContact  Json?  // {name, relation, phone}
+  interests         String[]
+  social            Json?  // {linkedin, github, etc}
+  
+  // Assistant specific
+  assignedToInstructorId String? @db.ObjectId
+  responsibilities       String[]
+  schedule              Json?
+  
+  notes         String?
+  
   // Relations
   enrolledCourses Enrollment[]
   certificates    Certificate[]
@@ -49,17 +86,35 @@ model User {
   createdAt     DateTime @default(now())
 }
 
+model Grade {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique // e.g., "Primary 1", "Secondary 1"
+  description String?
+  order       Int      @default(0) // For sorting
+  courses     Course[]
+  createdAt   DateTime @default(now())
+}
+
 model Course {
   id             String       @id @default(auto()) @map("_id") @db.ObjectId
   title          String
   description    String?
-  level          String       
+  level          String?
+  price          Float?
+  category       String?
+  tags           String[]
+  publishedDate  DateTime?
+  
   creatorId      String       @db.ObjectId
   creator        User         @relation("CourseCreator", fields: [creatorId], references: [id])
+  
+  gradeId        String?      @db.ObjectId
+  grade          Grade?       @relation(fields: [gradeId], references: [id], onDelete: SetNull)
   
   partitions     Partition[]
   enrollments    Enrollment[]
   certificates   Certificate[]
+  createdAt      DateTime     @default(now())
 }
 
 model LectureAccess {
@@ -89,17 +144,48 @@ model Partition {
 model Lecture {
   id              String    @id @default(auto()) @map("_id") @db.ObjectId
   title           String
+  name            String?   // Alternative name field used in frontend
   content         String?
+  summary         String?
   videoUrl        String?
   maxVideoViews   Int       @default(1)
   maxQuizAttempts Int       @default(1)
   
+  // Analytics
+  students        Int       @default(0) // Number of enrolled students
+  durationMins    Int       @default(0)
+  earnings        Float     @default(0)
+  
   partitionId     String    @db.ObjectId
   partition       Partition @relation(fields: [partitionId], references: [id], onDelete: Cascade)
-  accessCodes LectureAccess[]
+  accessCodes     LectureAccess[]
 
+  sections        Section[]
   quiz            Quiz?
   userProgress    Progress[]
+}
+
+model Section {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  durationMins Int      @default(0)
+  order        Int      @default(0)
+  
+  lectureId    String   @db.ObjectId
+  lecture      Lecture  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  
+  videos       Video[]
+}
+
+model Video {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  title        String
+  src          String   // Video URL/path
+  durationMins Int      @default(0)
+  order        Int      @default(0)
+  
+  sectionId    String   @db.ObjectId
+  section      Section  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 }
 
 model Quiz {
@@ -129,12 +215,14 @@ model Option {
 }
 
 model Enrollment {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  studentId String   @db.ObjectId
-  courseId  String   @db.ObjectId
-  student   User     @relation(fields: [studentId], references: [id])
-  course    Course   @relation(fields: [courseId], references: [id])
-  createdAt DateTime @default(now())
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  studentId       String   @db.ObjectId
+  courseId        String   @db.ObjectId
+  student         User     @relation(fields: [studentId], references: [id])
+  course          Course   @relation(fields: [courseId], references: [id])
+  progressPercent Float    @default(0)
+  enrolledDate    DateTime @default(now())
+  createdAt       DateTime @default(now())
 
   @@unique([studentId, courseId])
 }

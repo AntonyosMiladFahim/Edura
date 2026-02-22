@@ -2,6 +2,10 @@
 // npm install --save-dev prisma dotenv
 // prisma.config.ts
 import { defineConfig } from '@prisma/config';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
 
 export default defineConfig({
   datasource: {

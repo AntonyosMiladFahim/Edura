@@ -232,7 +232,8 @@ backend/
 │   ├── Parent.js
 │   ├── Grade.js
 │   ├── Course.js
-│   └── Lecture.js
+│   ├── Lecture.js
+|   └── asistant.js
 ├── controllers/
 │   ├── authController.js
 │   ├── studentController.js
