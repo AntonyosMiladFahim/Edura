@@ -16,3 +16,5 @@ router.delete('/:id',verifyToken, deleteUser);        // Delete a specific user 
 router.post("/save", verifyToken, savePost);            // Save a post for the authenticated user
 router.get("/notification", verifyToken, getNotificationNumber);  // Get the number of notifications 
 export default router;
+
+/users/1
